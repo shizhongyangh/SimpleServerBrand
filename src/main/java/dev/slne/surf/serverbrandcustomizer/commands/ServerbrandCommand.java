@@ -16,7 +16,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-@SuppressWarnings("UnstableApiUsage")
 public class ServerbrandCommand {
 
   private static final DynamicCommandExceptionType CONFIG_RELOAD_FAILED = new DynamicCommandExceptionType(

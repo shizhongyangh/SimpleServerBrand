@@ -1,8 +1,9 @@
 package dev.slne.surf.serverbrandcustomizer.config;
 
+import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
+import com.github.retrooper.packetevents.netty.buffer.UnpooledByteBufAllocationHelper;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import dev.slne.surf.serverbrandcustomizer.SurfServerbrandCustomizer;
-import dev.slne.surf.serverbrandcustomizer.buf.Utf8String;
-import io.netty.buffer.Unpooled;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -54,11 +55,17 @@ public final class ServerbrandConfig {
     reloadFromConfig();
   }
 
+  public String getCustomServerBrand() {
+    return customServerBrand;
+  }
+
   public byte @NotNull [] getCustomServerBrandBytes() {
-    var buf = Unpooled.buffer();
-    Utf8String.writeString(buf, customServerBrand);
-    var data = new byte[buf.readableBytes()];
-    buf.readBytes(data);
+    var buf = UnpooledByteBufAllocationHelper.buffer();
+    var wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
+    wrapper.writeString(customServerBrand);
+    var data = new byte[ByteBufHelper.readableBytes(buf)];
+    ByteBufHelper.readBytes(buf, data);
+    ByteBufHelper.release(buf);
 
     return data;
   }
