@@ -6,8 +6,6 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import dev.slne.surf.serverbrandcustomizer.SurfServerbrandCustomizer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
 public final class ServerbrandConfig {
@@ -37,36 +35,12 @@ public final class ServerbrandConfig {
       return;
     }
 
-    //noinspection deprecation
-    customServerBrand = LegacyComponentSerializer.legacySection()
-                            .serialize(Component.text()
-                                .append(MiniMessage.miniMessage().deserialize(rawBrand))
-                                .build()
-                            ) + ChatColor.RESET;
+    // 纯文本解析，移除所有颜色/格式化代码
+    customServerBrand = MiniMessage.miniMessage().stripTags(rawBrand);
   }
 
   public boolean isCustomServerBrandSet() {
     return customServerBrand != null;
   }
 
-  public void setCustomServerBrand(String customServerBrand) {
-    plugin.getConfig().set("brand", customServerBrand);
-    plugin.saveConfig();
-    reloadFromConfig();
-  }
-
-  public String getCustomServerBrand() {
-    return customServerBrand;
-  }
-
-  public byte @NotNull [] getCustomServerBrandBytes() {
-    var buf = UnpooledByteBufAllocationHelper.buffer();
-    var wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
-    wrapper.writeString(customServerBrand);
-    var data = new byte[ByteBufHelper.readableBytes(buf)];
-    ByteBufHelper.readBytes(buf, data);
-    ByteBufHelper.release(buf);
-
-    return data;
-  }
-}
+  public void setCustomServerBrand(String customServerBrand)
