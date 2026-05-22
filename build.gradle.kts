@@ -55,12 +55,11 @@ tasks {
 
 publishing {
     repositories {
-        maven {
-            url = uri(System.getenv("MAVEN_URL") ?: return@maven)
-            name = "maven-snapshots"
+        maven("https://reposilite.slne.dev/releases/") {
+            name = "slne-repository-releases"
             credentials {
-                username = System.getenv("MAVEN_USERNAME")
-                password = System.getenv("MAVEN_PASSWORD")
+                username = System.getenv("SLNE_RELEASES_REPO_USERNAME")
+                password = System.getenv("SLNE_RELEASES_REPO_PASSWORD")
             }
         }
     }
