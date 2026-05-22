@@ -8,65 +8,90 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public final class ServerbrandConfig {
 
-  private final SurfServerbrandCustomizer plugin;
-  private volatile String customServerBrand;
+    private final SurfServerbrandCustomizer plugin;
+    private @Nullable String customServerBrand;
 
-  public ServerbrandConfig(SurfServerbrandCustomizer plugin) {
-    this.plugin = plugin;
-  }
+    private volatile byte @Nullable [] customServerBrandBytes;
 
-  public void load() {
-    plugin.saveDefaultConfig();
-    reloadFromConfig();
-  }
-
-  public void reload() {
-    plugin.reloadConfig();
-    reloadFromConfig();
-  }
-
-  public void reloadFromConfig() {
-    var rawBrand = plugin.getConfig().getString("brand");
-
-    if (rawBrand == null) {
-      customServerBrand = null;
-      return;
+    public ServerbrandConfig(SurfServerbrandCustomizer plugin) {
+        this.plugin = plugin;
     }
 
-    //noinspection deprecation
-    customServerBrand = LegacyComponentSerializer.legacySection()
-                            .serialize(Component.text()
-                                .append(MiniMessage.miniMessage().deserialize(rawBrand))
-                                .build()
-                            ) + ChatColor.RESET;
-  }
+    public void load() {
+        plugin.saveDefaultConfig();
+        reloadFromConfig();
+    }
 
-  public boolean isCustomServerBrandSet() {
-    return customServerBrand != null;
-  }
+    public void reload() {
+        plugin.reloadConfig();
+        reloadFromConfig();
+    }
 
-  public void setCustomServerBrand(String customServerBrand) {
-    plugin.getConfig().set("brand", customServerBrand);
-    plugin.saveConfig();
-    reloadFromConfig();
-  }
+    public void reloadFromConfig() {
+        var rawBrand = plugin.getConfig().getString("brand");
 
-  public String getCustomServerBrand() {
-    return customServerBrand;
-  }
+        if (rawBrand == null) {
+            customServerBrand = null;
+            return;
+        }
 
-  public byte @NotNull [] getCustomServerBrandBytes() {
-    var buf = UnpooledByteBufAllocationHelper.buffer();
-    var wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
-    wrapper.writeString(customServerBrand);
-    var data = new byte[ByteBufHelper.readableBytes(buf)];
-    ByteBufHelper.readBytes(buf, data);
-    ByteBufHelper.release(buf);
+        //noinspection deprecation
+        customServerBrand = LegacyComponentSerializer.legacySection()
+                .serialize(Component.text()
+                        .append(MiniMessage.miniMessage().deserialize(rawBrand))
+                        .build()
+                ) + ChatColor.RESET;
 
-    return data;
-  }
+        customServerBrandBytes = null;
+    }
+
+    public boolean isCustomServerBrandSet() {
+        return customServerBrand != null;
+    }
+
+    public void setCustomServerBrand(String customServerBrand) {
+        plugin.getConfig().set("brand", customServerBrand);
+        plugin.saveConfig();
+        reloadFromConfig();
+    }
+
+    public @Nullable String getCustomServerBrand() {
+        return customServerBrand;
+    }
+
+    public byte @Nullable [] getCustomServerBrandBytes() {
+        if (customServerBrandBytes != null) {
+            return customServerBrandBytes;
+        }
+
+        if (customServerBrand == null) {
+            return null;
+        }
+
+        synchronized (this) {
+            if (customServerBrandBytes != null) {
+                return customServerBrandBytes;
+            }
+
+            var buf = UnpooledByteBufAllocationHelper.buffer();
+
+            try {
+                var wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
+                wrapper.writeString(customServerBrand);
+
+                var data = new byte[ByteBufHelper.readableBytes(buf)];
+                ByteBufHelper.readBytes(buf, data);
+
+                return customServerBrandBytes = data;
+            } finally {
+                ByteBufHelper.release(buf);
+            }
+        }
+    }
 }

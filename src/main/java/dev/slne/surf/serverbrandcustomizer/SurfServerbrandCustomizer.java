@@ -6,14 +6,14 @@ import dev.slne.surf.serverbrandcustomizer.config.ServerbrandConfig;
 import dev.slne.surf.serverbrandcustomizer.listener.BrandSendListener;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class SurfServerbrandCustomizer extends JavaPlugin {
 
   public static final String BRAND_CHANNEL = "minecraft:brand";
   private final ServerbrandConfig serverbrandConfig = new ServerbrandConfig(this);
 
-  @SuppressWarnings("UnstableApiUsage")
   @Override
   public void onLoad() {
     getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS.newHandler(event -> {
@@ -40,7 +40,7 @@ public final class SurfServerbrandCustomizer extends JavaPlugin {
     return serverbrandConfig;
   }
 
-  public static @NotNull SurfServerbrandCustomizer getInstance() {
+  public static SurfServerbrandCustomizer getInstance() {
     return getPlugin(SurfServerbrandCustomizer.class);
   }
 }

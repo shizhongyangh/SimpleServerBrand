@@ -15,58 +15,58 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jspecify.annotations.NullMarked;
 
-public class ServerbrandCommand {
+import static io.papermc.paper.command.brigadier.Commands.argument;
+import static io.papermc.paper.command.brigadier.Commands.literal;
 
-  private static final DynamicCommandExceptionType CONFIG_RELOAD_FAILED = new DynamicCommandExceptionType(
-      (e) -> new LiteralMessage("Failed to reload config: " + ((Throwable) e).getMessage()));
+@NullMarked
+public final class ServerbrandCommand {
 
-  public static void register(Commands commands) {
-    commands.register(Commands.literal("serverbrand")
-        .requires(source -> source.getSender().hasPermission("surf.serverbrand.customizer.command"))
-        .then(Commands.literal("reload")
-            .executes(context -> doReload(context.getSource())))
-        .then(Commands.literal("set")
-            .then(Commands.argument("brand", StringArgumentType.greedyString())
-                .executes(context -> doSetBrand(context.getSource(),
-                    StringArgumentType.getString(context, "brand")))))
-        .build());
-  }
+    private static final DynamicCommandExceptionType CONFIG_RELOAD_FAILED = new DynamicCommandExceptionType(
+            (e) -> new LiteralMessage("Failed to reload config: " + ((Throwable) e).getMessage()));
 
-  private static int doReload(CommandSourceStack source) throws CommandSyntaxException {
-    var plugin = SurfServerbrandCustomizer.getInstance();
-    try {
-      plugin.reload();
-    } catch (Throwable e) {
-      throw CONFIG_RELOAD_FAILED.create(e);
+    public static void register(Commands commands) {
+        commands.register(literal("serverbrand")
+                .requires(source -> source.getSender().hasPermission("surf.serverbrand.customizer.command"))
+                .then(literal("reload")
+                        .executes(context -> doReload(context.getSource())))
+                .then(literal("set")
+                        .then(argument("brand", StringArgumentType.greedyString())
+                                .executes(context -> doSetBrand(context.getSource(),
+                                        StringArgumentType.getString(context, "brand")))))
+                .build());
     }
-    resendToOnlinePlayers(plugin.getServerbrandConfig());
 
-    source.getSender()
-        .sendMessage(Component.text("Reloaded custom server brand",
-            NamedTextColor.GREEN));
+    private static int doReload(CommandSourceStack source) throws CommandSyntaxException {
+        var plugin = SurfServerbrandCustomizer.getInstance();
+        try {
+            plugin.reload();
+        } catch (Throwable e) {
+            throw CONFIG_RELOAD_FAILED.create(e);
+        }
+        resendToOnlinePlayers(plugin.getServerbrandConfig());
 
-    return Command.SINGLE_SUCCESS;
-  }
+        source.getSender().sendMessage(Component.text("Reloaded custom server brand", NamedTextColor.GREEN));
 
-  private static int doSetBrand(CommandSourceStack source, String brand) {
-    var config = SurfServerbrandCustomizer.getInstance().getServerbrandConfig();
-
-    config.setCustomServerBrand(brand);
-    resendToOnlinePlayers(config);
-
-    source.getSender()
-        .sendMessage(
-            Component.text("Set custom server brand", NamedTextColor.GREEN));
-
-    return Command.SINGLE_SUCCESS;
-  }
-
-  private static void resendToOnlinePlayers(ServerbrandConfig config) {
-    var packet = new WrapperPlayServerPluginMessage(SurfServerbrandCustomizer.BRAND_CHANNEL,
-        config.getCustomServerBrandBytes());
-    for (final Player player : Bukkit.getOnlinePlayers()) {
-      PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
+        return Command.SINGLE_SUCCESS;
     }
-  }
+
+    private static int doSetBrand(CommandSourceStack source, String brand) {
+        var config = SurfServerbrandCustomizer.getInstance().getServerbrandConfig();
+
+        config.setCustomServerBrand(brand);
+        resendToOnlinePlayers(config);
+
+        source.getSender().sendMessage(Component.text("Set custom server brand", NamedTextColor.GREEN));
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static void resendToOnlinePlayers(ServerbrandConfig config) {
+        var packet = new WrapperPlayServerPluginMessage(SurfServerbrandCustomizer.BRAND_CHANNEL, config.getCustomServerBrandBytes());
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
+        }
+    }
 }
