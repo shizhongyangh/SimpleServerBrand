@@ -4,10 +4,6 @@ import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.netty.buffer.UnpooledByteBufAllocationHelper;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import dev.slne.surf.serverbrandcustomizer.SurfServerbrandCustomizer;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.ChatColor;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -41,13 +37,7 @@ public final class ServerbrandConfig {
             return;
         }
 
-        //noinspection deprecation
-        customServerBrand = LegacyComponentSerializer.legacySection()
-                .serialize(Component.text()
-                        .append(MiniMessage.miniMessage().deserialize(rawBrand))
-                        .build()
-                ) + ChatColor.RESET;
-
+        customServerBrand = rawBrand;
         customServerBrandBytes = null;
     }
 
